@@ -6,23 +6,24 @@
 */
 #include <stdlib.h>
 #include <time.h>
+#include <iostream>
 #include <vector>
 #include <cuda_runtime.h>
 #include "device_launch_parameters.h"
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 
-#define MIN_CHILDREN 1
-#define MAX_CHILDREN 3
-#define CHILD_MOD1 4
-#define CHILD_MOD2 4
-#define CITIZEN_CHANCE 5
-#define WORK_HOURS 8
-#define NORMAL_PAY 20
-#define OVERTIME_PAY 30
-#define NUM_AGENTS 20
-#define NUM_GROUPS 1000
-#define SEED NULL
+#define MIN_CHILDREN 1 //default 1
+#define MAX_CHILDREN 3 //default 3
+#define CHILD_MOD1 4 //default 4
+#define CHILD_MOD2 4 //default 4
+#define CITIZEN_CHANCE 5 //default 5 (80%)
+#define WORK_HOURS 8 //default 8
+#define NORMAL_PAY 20 //default 20
+#define OVERTIME_PAY 30 //default 30
+#define NUM_AGENTS 20 //default 20
+#define NUM_GROUPS 1000 //default 1000
+#define SEED NULL //default NULL (0)
 
 typedef struct group_struct {
     int adults;
@@ -117,6 +118,7 @@ int calc_payroll(int time) {
 int main() {
     srand(time(SEED));
 
+    //
     thrust::device_vector<agent*> agents;
     thrust::fill(agents.begin(), agents.begin()+NUM_AGENTS, create_agent());
     for (int i = 0; i < NUM_AGENTS; i++) {
@@ -127,6 +129,24 @@ int main() {
     calc_time<<<1, NUM_AGENTS>>>(agents, elapsed);
     int payroll = calc_payroll(elapsed);
     int average = (elapsed / NUM_AGENTS);
+
+    std::cout << "-- Simulation Parameters --\n" << std::endl;
+    std::cout << "Minimum Number of Children: " << MIN_CHILDREN << "\n" << std::endl;
+    std::cout << "Maximum Number of Children: " << MAX_CHILDREN << "\n" << std::endl;
+    std::cout << "Child Mod 1: " << CHILD_MOD1 << "\n" << std::endl;
+    std::cout << "Child Mod 2: " << CHILD_MOD2 << "\n" << std::endl;
+    std::cout << "Citizen Chance Modifier: " << CITIZEN_CHANCE << "\n" << std::endl;
+    std::cout << "Work Hours: " << WORK_HOURS << "\n" << std::endl;
+    std::cout << "Normal Hourly Pay: " << NORMAL_PAY << "\n" << std::endl;
+    std::cout << "Overtime Hourly Pay: " << OVERTIME_PAY << "\n" << std::endl;
+    std::cout << "Number of Customs Agents: " << NUM_AGENTS << "\n" << std::endl;
+    std::cout << "Number of Groups per Agent: " << NUM_GROUPS << "\n" << std::endl;
+    std::cout << "Random Number Seed: " << SEED << "\n" << std::endl;
+    std::cout << "\n" << std::endl;
+    std::cout << "-- Simulation Results --\n" << std::endl;
+    std::cout << "Total Time Elapsed: " << elapsed << "\n" << std::endl;
+    std::cout << "Total Payroll for the day: " << payroll << "\n" << std::endl;
+    std::cout << "Average Time Elapsed: " << average << "\n" << std::endl;
 
     for (int i = 0; i < NUM_AGENTS; i++) {
         delete(agents[i]);
