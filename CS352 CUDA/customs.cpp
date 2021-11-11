@@ -1,5 +1,5 @@
 /*
-/   Code by Sebastian Miller, based on customs.c from CS305
+/   Code by SM, based on customs.c from CS305
 /   C++ version of the eventual CUDA implementation.
 /   Simulates a day in the life of some customs agents, sequentially.
 /   Change the constants to edit the parameters of the simulation.
@@ -24,15 +24,12 @@ typedef struct group_struct {
     int adults;
     int children;
     bool usa;
-    group* next;
-    group* prev;
 }group;
 
 typedef struct agent_struct {
     int timecard;
     int avail;
-    group* head;
-    group* tail;
+    std::vector<group*> group;
 }agent;
 
 typedef struct stats_struct {
@@ -49,7 +46,6 @@ group* create_group() {
     if (g->children < 0)
         g->children = 0;
     g->usa = ((rand() % CITIZEN_CHANCE) == 0) ? false : true;
-    g->next = g->prev = nullptr;
     return g;
 }
 
@@ -57,7 +53,6 @@ agent* create_agent() {
     agent* a = new agent;
     a->timecard = 0;
     a->avail = 0;
-    a->head = a->tail = nullptr;
     return a;
 }
 
@@ -73,20 +68,14 @@ void enqueue(agent* agt, group* grp) {
     if (agt == nullptr || grp == nullptr)
         return;
 
-    if (agt->tail == nullptr) {
-        agt->head = grp;
-    }
-    else {
-        agt->tail->next = grp;
-    }
-    agt->tail = grp;
+    agt->group.push_back(grp);
 }
 
 group* dequeue(agent* agt) {
-    if (agt->head == nullptr || agt == nullptr)
+    if (agt->group.front() == nullptr || agt == nullptr)
         return nullptr;
-    group* grp = agt->head;
-    agt->head = agt->head->next;
+    group *grp = agt->group.back();
+    agt->group.pop_back();
     return grp;
 }
 
