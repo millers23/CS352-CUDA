@@ -77,7 +77,7 @@ __device__ group* dequeue(agent* agt) {
 }
 
 //this is parallel now
-__global__ void calc_time(std::vector<agent*> agents, int total_time) {
+__global__ void calc_time(thrust::device_vector<agent*> agents, int total_time) {
     int max_time = 0;
 
     int i = threadIdx.x;
@@ -103,7 +103,6 @@ __global__ void calc_time(std::vector<agent*> agents, int total_time) {
 
 int calc_payroll(int time) {
     int cost = 0;
-    int overtime = 0;
 
     if ((time / 60) <= WORK_HOURS)
         cost = (time / 60) * NORMAL_PAY * NUM_AGENTS;
