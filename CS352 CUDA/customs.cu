@@ -96,6 +96,15 @@ __global__ void calc_time(thrust::device_vector<agent*> agents, int total_time) 
         g = dequeue(a);
     }
 
+    /*while ((*agents[i]).group[j] != nullptr && j < NUM_GROUPS) {
+        int temp = (*agents[i]).(*group[j]).adults;
+        if (!(*agents[i]).group[j]->usa)
+            temp *= 2;
+        temp += (1 + (*agents[i]).group[j]->children) / 2;
+        agent_time += temp;
+        j++;
+    }*/
+
     if (agent_time > max_time)
         max_time = agent_time;
     if (max_time > total_time)
