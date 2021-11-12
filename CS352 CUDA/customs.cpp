@@ -20,17 +20,23 @@
 #define NUM_GROUPS 1000
 #define SEED NULL
 
-typedef struct group_struct {
+struct group {
     int adults;
     int children;
     bool usa;
-}group;
+    group(int a, int c, bool u) 
+        : adults(a), children(c), usa(u)
+    {}
+};
 
-typedef struct agent_struct {
+struct agent {
     int timecard;
     int avail;
-    std::vector<group*> group;
-}agent;
+    std::vector<group*> group;//rename
+    agent(int t, int a, std::vector<group*> g) 
+        : timecard(t), avail(a), group(g)
+    {}
+};
 
 typedef struct stats_struct {
     int total_time;

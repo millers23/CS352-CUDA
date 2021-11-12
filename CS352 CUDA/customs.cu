@@ -25,25 +25,25 @@
 #define NUM_GROUPS 1000 //default 1000
 #define SEED NULL //default NULL (0)
 
-typedef struct group_struct {
+struct group {
     int adults;
     int children;
     bool usa;
-    thrust::device_vector<group*> group;
-}group;
+    //thrust::device_vector<group*> group;
+};
 
-typedef struct agent_struct {
+struct agent {
     int timecard;
     int avail;
     thrust::device_vector<group*> group;
-}agent;
+};
 
-typedef struct stats_struct {
+struct stats {
     int total_time;
     int total_payroll;
     int avg_wait_time;
     int max_wait_time;
-}stats;
+};
 
 group* create_group() {
     group* g = new group;
