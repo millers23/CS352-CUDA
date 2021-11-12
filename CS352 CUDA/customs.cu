@@ -62,7 +62,7 @@ agent* create_agent() {
     return a;
 }
 
-__device__ void enqueue(agent* agt, group* grp) {
+/*__device__ void enqueue(agent* agt, group* grp) {
     if (agt == nullptr || grp == nullptr)
         return;
 
@@ -75,35 +75,29 @@ __device__ group* dequeue(agent* agt) {
     group* grp = agt->group.back();
     agt->group.pop_back();
     return grp;
-}
+}*/
 
 //this is parallel now
-__global__ void calc_time(thrust::device_vector<agent*> agents, int total_time) {
+__global__ void calc_time(int total_time, thrust::device_vector<agent*> agents, agent* a, group* g) {
     int max_time = 0;
+    int j = 0;
 
     int i = threadIdx.x;
-    agent* a = agents[i];
+    a = agents[i]; //broken???
     int agent_time = 0;
-    group* g = dequeue(a);
+    g = a->group[0]; //broken???
 
-    while (g != nullptr) {
+    while (g != nullptr && j < NUM_AGENTS) {
         int temp = g->adults;
         if (!g->usa)
             temp *= 2;
         temp += (1 + g->children) / 2;
         agent_time += temp;
         delete(g);
-        g = dequeue(a);
-    }
-
-    /*while ((*agents[i]).group[j] != nullptr && j < NUM_GROUPS) {
-        int temp = (*agents[i]).(*group[j]).adults;
-        if (!(*agents[i]).group[j]->usa)
-            temp *= 2;
-        temp += (1 + (*agents[i]).group[j]->children) / 2;
-        agent_time += temp;
+        //g = dequeue(a);
         j++;
-    }*/
+        g = a->group[j]; //broken???
+    }
 
     if (agent_time > max_time)
         max_time = agent_time;
@@ -123,19 +117,34 @@ int calc_payroll(int time) {
     return cost;
 }
 
+__device__ int elapsed;
+
 //let's do this!
 int main() {
     srand(time(SEED));
 
     //
-    thrust::device_vector<agent*> agents;
-    thrust::fill(agents.begin(), agents.begin()+NUM_AGENTS, create_agent());
+    thrust::host_vector<agent*> h_agents;
+    thrust::fill(h_agents.begin(), h_agents.begin()+NUM_AGENTS, create_agent());
     for (int i = 0; i < NUM_AGENTS; i++) {
-        thrust::fill((*agents[i]).group.begin(), (*agents[i]).group.begin()+NUM_GROUPS, create_group());
+        thrust::fill((*h_agents[i]).group.begin(), (*h_agents[i]).group.begin()+NUM_GROUPS, create_group());
     }
 
+    thrust::device_vector<agent*> d_agents = h_agents;
+
+    group* h_g = (group*)malloc(sizeof(h_g));
+    agent* h_a = (agent*)malloc(sizeof(h_a));
     int elapsed = 0;
-    calc_time<<<1, NUM_AGENTS>>>(agents, elapsed);
+
+    group* d_g;
+    cudaMalloc(&d_g, sizeof(d_g));
+    cudaMemcpy(d_g, h_g, sizeof(group*), cudaMemcpyHostToDevice);
+
+    agent* d_a;
+    cudaMalloc(&d_a, sizeof(d_a));
+    cudaMemcpy(d_a, h_a, sizeof(agent*), cudaMemcpyHostToDevice);
+
+    calc_time<<<1, NUM_AGENTS>>>(elapsed, d_agents, d_a, d_g);
     int payroll = calc_payroll(elapsed);
     int average = (elapsed / NUM_AGENTS);
 
@@ -158,6 +167,7 @@ int main() {
     std::cout << "Average Time Elapsed: " << average << "\n" << std::endl;
 
     for (int i = 0; i < NUM_AGENTS; i++) {
-        delete(agents[i]);
+        delete(d_agents[i]);
+        delete(h_agents[i]);
     }
 }
